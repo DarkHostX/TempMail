@@ -2,12 +2,46 @@ import streamlit as st
 import requests
 import uuid
 
-# إعداد الواجهة
-st.set_page_config(page_title="📧 بريد مؤقت (Mail.tm)", layout="centered")
-st.title("📧 بريد مؤقت")
-st.markdown("خدمة بريد مؤقت باستخدام [Mail.tm](https://mail.tm)")
+# إعداد صفحة Streamlit
+st.set_page_config(page_title="📧 بريد مؤقت", layout="centered")
+st.markdown("""
+    <style>
+        body {
+            direction: rtl;
+            text-align: right;
+        }
+        .email-box {
+            font-size: 20px;
+            background-color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: left;
+            direction: ltr;
+            font-weight: bold;
+        }
+        .msg-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+        .msg-content {
+            white-space: pre-wrap;
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 6px;
+            direction: ltr;
+            text-align: left;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-# دالة: إنشاء بريد مؤقت جديد
+st.title("📧 بريد مؤقت")
+st.markdown("خدمة بريد مؤقت آمنة وسريعة - بديل مهمل")
+
 def create_account():
     domain_resp = requests.get("https://api.mail.tm/domains")
     domain = domain_resp.json()["hydra:member"][0]["domain"]
@@ -30,28 +64,27 @@ def create_account():
     else:
         return None, None
 
-# زر توليد بريد جديد
+# زر توليد البريد
 if st.button("🔁 توليد بريد جديد"):
     email, token = create_account()
     if email:
         st.session_state["email"] = email
         st.session_state["token"] = token
-        st.success(f"📨 البريد المؤقت الخاص بك:\n\n`{email}`")
+        st.markdown(f"<div class='email-box'>{email}</div>", unsafe_allow_html=True)
     else:
-        st.error("❌ تعذر إنشاء البريد. حاول مرة أخرى.")
+        st.error("تعذر توليد البريد. حاول مرة أخرى.")
 
-# التحقق من وجود بريد مخزن في الجلسة
+# عرض البريد الحالي
 if "email" in st.session_state and "token" in st.session_state:
     email = st.session_state["email"]
     token = st.session_state["token"]
 
     st.subheader("📥 صندوق الرسائل")
 
-    # زر تحديث الرسائل
+    # زر التحديث
     if st.button("🔄 تحديث الرسائل"):
         st.session_state["refresh"] = True
 
-    # عرض الرسائل
     headers = {"Authorization": f"Bearer {token}"}
     try:
         inbox = requests.get("https://api.mail.tm/messages", headers=headers).json()
@@ -64,21 +97,15 @@ if "email" in st.session_state and "token" in st.session_state:
 
                 message_text = msg_detail.get("text") or msg_detail.get("html") or "📭 لا يوجد محتوى"
 
-                with st.container():
-                    st.markdown(
-                        f"""
-                        <div style="background-color:#f9f9f9;padding:15px;border-radius:12px;border:1px solid #ccc;margin-bottom:15px;">
-                            <h4 style="margin-bottom:5px;">✉️ من: {msg['from']['address']}</h4>
-                            <p><strong>📝 الموضوع:</strong> {msg['subject']}</p>
-                            <p><strong>📅 التاريخ:</strong> {msg['createdAt']}</p>
-                            <hr style="margin:10px 0;">
-                            <div style="white-space:pre-wrap;background:#fff;border:1px solid #eee;padding:10px;border-radius:6px;">
-                                {message_text}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                st.markdown(f"""
+                    <div class="msg-card">
+                        <strong>✉️ من:</strong> {msg['from']['address']}<br>
+                        <strong>📝 الموضوع:</strong> {msg['subject']}<br>
+                        <strong>📅 التاريخ:</strong> {msg['createdAt']}
+                        <hr>
+                        <div class="msg-content">{message_text}</div>
+                    </div>
+                """, unsafe_allow_html=True)
         else:
             st.info("لا توجد رسائل حالياً.")
     except Exception as e:
