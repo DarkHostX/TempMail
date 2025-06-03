@@ -1,33 +1,23 @@
-import streamlit as st
 import requests
-import random
-import string
+from bs4 import BeautifulSoup
 
-st.set_page_config(page_title="بريد مؤقت", layout="centered")
-st.title("📧 بريد مؤقت باستخدام Mail.tm")
+# الخطوة 1: إرسال طلب للموقع
+url = "https://www.mohmal.com/ar"
+headers = {
+    "User-Agent": "Mozilla/5.0"
+}
+response = requests.get(url, headers=headers)
 
-# 🔁 توليد بريد مؤقت وهمي (للتجربة فقط)
-def generate_random_email():
-    domain = "mail.tm"
-    username = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
-    return f"{username}@{domain}", username, domain
+# الخطوة 2: تحليل المحتوى باستخدام BeautifulSoup
+soup = BeautifulSoup(response.text, "html.parser")
 
-# 📨 توليد البريد عند أول تشغيل
-if 'email' not in st.session_state:
-    email, username, domain = generate_random_email()
-    st.session_state.email = email
-    st.session_state.username = username
-    st.session_state.domain = domain
+# مثال: طباعة كل العناوين <h1>
+for h1 in soup.find_all("h1"):
+    print(h1.text.strip())
 
-email = st.session_state.email
-username = st.session_state.username
-domain = st.session_state.domain
-
-# ✅ عرض البريد
-st.success(f"📬 بريدك المؤقت: `{email}`")
-st.info("⚠️ هذه نسخة تجريبية لعرض بريد مؤقت فقط، لا تستقبل رسائل حقيقية.")
-
-# زر لتحديث البريد
-if st.button("🔁 توليد بريد جديد"):
-    del st.session_state['email']
-    st.experimental_rerun()
+# مثال: استخراج البريد المؤقت (إذا وُجد داخل عنصر محدد)
+email_div = soup.find("div", {"id": "email"})
+if email_div:
+    print("📧 البريد المؤقت:", email_div.text.strip())
+else:
+    print("لم يتم العثور على البريد.")
