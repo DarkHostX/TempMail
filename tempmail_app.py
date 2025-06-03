@@ -6,7 +6,6 @@ st.set_page_config(page_title="بريد مؤقت", layout="centered", page_icon=
 st.title("📧 بريد مؤقت")
 st.markdown("خدمة بريد مؤقت آمنة وسريعة - بديل مهمل")
 
-# زر توليد البريد
 if st.button("🔁 توليد بريد جديد"):
     try:
         res = requests.get("https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1")
@@ -16,7 +15,6 @@ if st.button("🔁 توليد بريد جديد"):
     except:
         st.error("تعذر توليد البريد. حاول مرة أخرى.")
 
-# عرض البريد الحالي إن وجد
 if 'email' in st.session_state:
     email = st.session_state['email']
     login, domain = email.split("@")
@@ -32,8 +30,6 @@ if 'email' in st.session_state:
                 st.markdown(f"### 📨 من: {msg['from']}")
                 st.markdown(f"**الموضوع:** {msg['subject']}")
                 st.markdown(f"**التاريخ:** {msg['date']}")
-
-                # عرض نص الرسالة
                 msg_id = msg['id']
                 msg_url = f"https://www.1secmail.com/api/v1/?action=readMessage&login={login}&domain={domain}&id={msg_id}"
                 msg_detail = requests.get(msg_url).json()
