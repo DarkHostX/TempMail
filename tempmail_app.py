@@ -8,8 +8,17 @@ st.markdown("أنشئ بريدًا مؤقتًا واستقبل الرسائل خ
 
 # توليد بريد مؤقت
 if 'email' not in st.session_state:
-    res = requests.get("https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1")
-st.session_state.email = res.json()[0]
+    try:
+    res = requests.get("https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1", timeout=10)
+    if res.status_code == 200:
+        st.session_state.email = res.json()[0]
+    else:
+        st.error("حدث خطأ أثناء توليد البريد المؤقت. الرجاء المحاولة لاحقًا.")
+        st.stop()
+except Exception as e:
+    st.error("تعذر الاتصال بخادم البريد المؤقت.")
+    st.stop()
+
 
 email = st.session_state.email
 st.success(f"📬 بريدك المؤقت: `{email}`")
