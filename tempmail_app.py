@@ -1,14 +1,13 @@
 import streamlit as st
 import requests
 import uuid
-import time
 
 # إعداد الواجهة
 st.set_page_config(page_title="📧 بريد مؤقت (Mail.tm)", layout="centered")
 st.title("📧 بريد مؤقت")
 st.markdown("خدمة بريد مؤقت باستخدام [Mail.tm](https://mail.tm)")
 
-# الدالة: إنشاء بريد مؤقت جديد
+# دالة: إنشاء بريد مؤقت جديد
 def create_account():
     domain_resp = requests.get("https://api.mail.tm/domains")
     domain = domain_resp.json()["hydra:member"][0]["domain"]
@@ -31,7 +30,7 @@ def create_account():
     else:
         return None, None
 
-# عند الضغط على الزر
+# توليد بريد عند الضغط
 if st.button("🔁 توليد بريد جديد"):
     email, token = create_account()
     if email:
@@ -47,8 +46,13 @@ if "email" in st.session_state and "token" in st.session_state:
     token = st.session_state["token"]
 
     st.subheader("📥 صندوق الرسائل")
-    headers = {"Authorization": f"Bearer {token}"}
+    
+    # زر تحديث الرسائل
+    if st.button("🔄 تحديث الرسائل"):
+        st.session_state["refresh"] = True
 
+    # عرض الرسائل
+    headers = {"Authorization": f"Bearer {token}"}
     try:
         inbox = requests.get("https://api.mail.tm/messages", headers=headers).json()
 
