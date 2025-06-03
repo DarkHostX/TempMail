@@ -30,7 +30,7 @@ def create_account():
     else:
         return None, None
 
-# توليد بريد عند الضغط
+# زر توليد بريد جديد
 if st.button("🔁 توليد بريد جديد"):
     email, token = create_account()
     if email:
@@ -40,5 +40,45 @@ if st.button("🔁 توليد بريد جديد"):
     else:
         st.error("❌ تعذر إنشاء البريد. حاول مرة أخرى.")
 
-# إذا تم إنشاء البريد مسبقًا
-if "email" in st.sessio
+# التحقق من وجود بريد مخزن في الجلسة
+if "email" in st.session_state and "token" in st.session_state:
+    email = st.session_state["email"]
+    token = st.session_state["token"]
+
+    st.subheader("📥 صندوق الرسائل")
+
+    # زر تحديث الرسائل
+    if st.button("🔄 تحديث الرسائل"):
+        st.session_state["refresh"] = True
+
+    # عرض الرسائل
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        inbox = requests.get("https://api.mail.tm/messages", headers=headers).json()
+
+        if inbox["hydra:member"]:
+            for msg in inbox["hydra:member"]:
+                st.markdown(f"### ✉️ من: {msg['from']['address']}")
+                st.markdown(f"**الموضوع:** {msg['subject']}")
+                st.markdown(f"**التاريخ:** {msg['createdAt']}")
+
+                # تفاصيل الرسالة
+                msg_detail = requests.get(
+                    f"https://api.mail.tm/messages/{msg['id']}", headers=headers
+                ).json()
+
+                message_text = msg_detail.get("text")
+                if not message_text:
+                    message_text = msg_detail.get("html")
+
+                if message_text:
+                    st.markdown("#### محتوى الرسالة:")
+                    st.code(message_text, language="html")
+                else:
+                    st.info("📭 لا يوجد محتوى قابل للعرض في هذه الرسالة.")
+
+                st.markdown("---")
+        else:
+            st.info("لا توجد رسائل حالياً.")
+    except Exception as e:
+        st.error(f"فشل في جلب الرسائل: {e}")
