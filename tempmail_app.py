@@ -58,44 +58,27 @@ if "email" in st.session_state and "token" in st.session_state:
 
         if inbox["hydra:member"]:
             for msg in inbox["hydra:member"]:
-    msg_detail = requests.get(
-        f"https://api.mail.tm/messages/{msg['id']}", headers=headers
-    ).json()
-
-    message_text = msg_detail.get("text") or msg_detail.get("html") or "📭 لا يوجد محتوى"
-
-    with st.container():
-        st.markdown(
-            f"""
-            <div style="background-color:#f9f9f9;padding:15px;border-radius:12px;border:1px solid #ccc;margin-bottom:15px;">
-                <h4 style="margin-bottom:5px;">✉️ من: {msg['from']['address']}</h4>
-                <p><strong>📝 الموضوع:</strong> {msg['subject']}</p>
-                <p><strong>📅 التاريخ:</strong> {msg['createdAt']}</p>
-                <hr style="margin:10px 0;">
-                <div style="white-space:pre-wrap;background:#fff;border:1px solid #eee;padding:10px;border-radius:6px;">
-                    {message_text}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-                # تفاصيل الرسالة
                 msg_detail = requests.get(
                     f"https://api.mail.tm/messages/{msg['id']}", headers=headers
                 ).json()
 
-                message_text = msg_detail.get("text")
-                if not message_text:
-                    message_text = msg_detail.get("html")
+                message_text = msg_detail.get("text") or msg_detail.get("html") or "📭 لا يوجد محتوى"
 
-                if message_text:
-                    st.markdown("#### محتوى الرسالة:")
-                    st.code(message_text, language="html")
-                else:
-                    st.info("📭 لا يوجد محتوى قابل للعرض في هذه الرسالة.")
-
-                st.markdown("---")
+                with st.container():
+                    st.markdown(
+                        f"""
+                        <div style="background-color:#f9f9f9;padding:15px;border-radius:12px;border:1px solid #ccc;margin-bottom:15px;">
+                            <h4 style="margin-bottom:5px;">✉️ من: {msg['from']['address']}</h4>
+                            <p><strong>📝 الموضوع:</strong> {msg['subject']}</p>
+                            <p><strong>📅 التاريخ:</strong> {msg['createdAt']}</p>
+                            <hr style="margin:10px 0;">
+                            <div style="white-space:pre-wrap;background:#fff;border:1px solid #eee;padding:10px;border-radius:6px;">
+                                {message_text}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
         else:
             st.info("لا توجد رسائل حالياً.")
     except Exception as e:
